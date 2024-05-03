@@ -31,12 +31,18 @@ la $s1, _table
 
 la $s0, _records
 sw $s0, 12($s1)  # Store at index 3
+move $a0 $s0
+jal print_student
 
 addi $s0, $s0, 8  # Next record
 sw $s0, 16($s1)  # Store at index 4
+move $a0 $s0
+jal print_student
 
 addi $s0, $s0, 8  # Next record is the one that will be inserted
 sw $s0, _record_to_insert
+move $a0 $s0
+jal print_student
 
 # The below file will call the search function with _record_to_insert
 .include "p4_tester.asm"

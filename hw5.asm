@@ -42,55 +42,33 @@ init_student_array_start:
 	sw $a2 -12($sp)
 	sw $a3 -16($sp)
 	sw $t0 -20($sp)
-	sw $t5 -24($sp)
-	sw $t6 -28($sp)
-	sw $t7 -32($sp)
-	sw $t4 -36($sp)
-	addi $sp $sp -36
+	sw $t1 -24($sp)
+	addi $sp $sp -24
 	lw $a0 0($a1)
 	lw $a1 0($a2)
 	move $a2 $a3
-	sub $a2 $a2 $t4
 	move $a3 $t0
 	jal init_student
 	#restore a and s
-	addi $sp $sp 36
+	addi $sp $sp 24
 	lw $a0 -4($sp)
 	lw $a1 -8($sp)
 	lw $a2 -12($sp)
 	lw $a3 -16($sp)
 	lw $t0 -20($sp)
-	lw $t5 -24($sp)
-	lw $t6 -28($sp)
-	lw $t7 -32($sp)
-	sw $t4 -36($sp)
+	lw $t1 -24($sp)
 	addiu $a0 $a0 -1 #subtract 1 from things left
 	addiu $a1 $a1 4 #next ID
 	addiu $a2 $a2 4 #next credit
 	addiu $t0 $t0 8 #next record
 	init_student_array_loop:
-		lw $t7 0($a3) #load char
-		and $t6 $t7 $t5 #use mask to isolate char
-		addiu $a3 $a3 4 #next 4 chars
-		li $t4 3 #offset
-		beq $t6 $zero init_student_array_loop_end
-		srl $t7 $t7 8
-		and $t6 $t7 $t5 #use mask to isolate char
-		li $t4 2 #offset
-		beq $t6 $zero init_student_array_loop_end
-		srl $t7 $t7 8
-		and $t6 $t7 $t5 #use mask to isolate char
-		li $t4 1 #offset
-		beq $t6 $zero init_student_array_loop_end
-		srl $t7 $t7 8
-		and $t6 $t7 $t5 #use mask to isolate char
-		li $t4 0 #offset
-		bne $t6 $zero init_student_array_loop #if its null break
+		lb $t1 0($a3) #load char
+		addiu $a3 $a3 1 #next char
+		bne $t1 $zero init_student_array_loop #if its null break
 init_student_array_loop_end:
 	beq $a0 $zero init_student_array_end #if its 0 die
 	bne $a0 $zero init_student_array_start #if not loop
 init_student_array:
-	li $t5 0x000000FF #make mask
 	lw $t0 0($sp) #store dest array $t0
 	sw $ra 0($sp) #store $ra in $sp
 	beq $a0 $zero init_student_array_end #if its 0 die
@@ -101,6 +79,31 @@ init_student_array_end:
 	jr $ra
 	
 insert:
+	lw $t0 0($a0) #load ID
+	srl $t0 $t0 10
+	div $t0 $a2 #calcuilate array index
+	mfhi $t1 #t1 holds initial array index
+	move $t2 $t1 #t2 is current array index
+	li $t3 4
+	li $t6 -1
+insert_loop_start:
+	mul $t5 $t2 $t3
+	add $t5 $t5 $a1 #address of current index
+	lw $t4 0($t5)
+	beq $t4 $zero insert_loop_end #if spot is empty leave loop
+	beq $t4 $t6 insert_loop_end #if tombstone leave loop
+	addi $t2 $t2 1 #increment
+	beq $t2 $t1 insert_full #checked all spots
+	blt $t2 $a2 insert_loop_start #back to start if not out of bounds
+	li $t2 0 #set $t2 to beginning if oob
+	beq $t2 $t1 insert_full #checked all spots
+	j insert_loop_start #loop
+insert_loop_end:
+	sw $a0 0($t5)
+	move $v0 $t2
+	jr $ra
+insert_full:
+	li $v0 -1
 	jr $ra
 	
 search:
