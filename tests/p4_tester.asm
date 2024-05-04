@@ -32,7 +32,7 @@ li $s1, 0  # Counter
 _print_loop:
 	beq $s1, $s2, _exit_print_loop
 	lw $t0, 0($s0)
-
+	
 	beqz $t0, _print_null
 	li $t1, -1
 	beq $t0, $t1, _print_tombstone

@@ -43,34 +43,37 @@ init_student_array_start:
 	sw $a3 -16($sp)
 	sw $t0 -20($sp)
 	sw $t1 -24($sp)
-	addi $sp $sp -24
+	sw $t2 -28($sp)
+	addi $sp $sp -28
 	lw $a0 0($a1)
 	lw $a1 0($a2)
 	move $a2 $a3
 	move $a3 $t0
 	jal init_student
 	#restore a and s
-	addi $sp $sp 24
+	addi $sp $sp 28
 	lw $a0 -4($sp)
 	lw $a1 -8($sp)
 	lw $a2 -12($sp)
 	lw $a3 -16($sp)
 	lw $t0 -20($sp)
 	lw $t1 -24($sp)
+	lw $t2 -28($sp)
 	addiu $a0 $a0 -1 #subtract 1 from things left
+	beq $a0 $zero init_student_array_end #if its 0 die
 	addiu $a1 $a1 4 #next ID
 	addiu $a2 $a2 4 #next credit
 	addiu $t0 $t0 8 #next record
 	init_student_array_loop:
 		lb $t1 0($a3) #load char
+		and $t1 $t1 $t2 #mask char
 		addiu $a3 $a3 1 #next char
 		bne $t1 $zero init_student_array_loop #if its null break
-init_student_array_loop_end:
-	beq $a0 $zero init_student_array_end #if its 0 die
-	bne $a0 $zero init_student_array_start #if not loop
+	j init_student_array_start #loop
 init_student_array:
 	lw $t0 0($sp) #store dest array $t0
 	sw $ra 0($sp) #store $ra in $sp
+	li $t2 0x000000FF #char mask
 	beq $a0 $zero init_student_array_end #if its 0 die
 	bne $a0 $zero init_student_array_start #if not loop
 init_student_array_end:
@@ -105,8 +108,36 @@ insert_loop_end:
 insert_full:
 	li $v0 -1
 	jr $ra
-	
+
 search:
+	beqz $a2 search_fail #if table size 0 die
+	div $a0 $a2 #calc array index
+	mfhi $t0 #initial index
+	move $t1 $t0 #current index
+	li $t2 4
+	li $t4 -1
+search_index:
+	mul $t3 $t1 $t2 
+	add $t3 $t3 $a1 #current address
+	lw $t3 0($t3) #grab pointer
+	beqz $t3 next_index #if null skip
+	beq $t3 $t4 next_index #if tomb skip
+	lw $t4 0($t3)
+	srl $t4 $t4 10 #get ID
+	beq $t4 $a0 search_found #check if its the right ID
+next_index:
+	addi $t1 $t1 1
+	beq $t1 $t0 search_fail #couldnt find
+	blt $t1 $a2 search_index #loop if not oob
+	li $t1 0
+	j search_index
+search_found:
+	move $v0 $t3
+	move $v1 $t1
+	jr $ra
+search_fail:
+	li $v0 0
+	li $v1 -1
 	jr $ra
 
 delete:
