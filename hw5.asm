@@ -124,7 +124,6 @@ search_index:
 	beq $t3 $t4 next_index #if tomb skip
 	lw $t5 0($t3)
 	srl $t5 $t5 10 #get ID
-	move $a0 $t6
 	beq $t5 $a0 search_found #check if its the right ID
 next_index:
 	addi $t1 $t1 1
