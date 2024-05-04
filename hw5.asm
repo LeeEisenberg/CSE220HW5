@@ -44,14 +44,14 @@ init_student_array_start:
 	sw $t0 -20($sp)
 	sw $t1 -24($sp)
 	sw $t2 -28($sp)
-	addi $sp $sp -28
+	addi $sp $sp -32
 	lw $a0 0($a1)
 	lw $a1 0($a2)
 	move $a2 $a3
 	move $a3 $t0
 	jal init_student
 	#restore a and s
-	addi $sp $sp 28
+	addi $sp $sp 32
 	lw $a0 -4($sp)
 	lw $a1 -8($sp)
 	lw $a2 -12($sp)
@@ -122,9 +122,9 @@ search_index:
 	lw $t3 0($t3) #grab pointer
 	beqz $t3 next_index #if null skip
 	beq $t3 $t4 next_index #if tomb skip
-	lw $t4 0($t3)
-	srl $t4 $t4 10 #get ID
-	beq $t4 $a0 search_found #check if its the right ID
+	lw $t5 0($t3)
+	srl $t5 $t5 10 #get ID
+	beq $t5 $a0 search_found #check if its the right ID
 next_index:
 	addi $t1 $t1 1
 	beq $t1 $t0 search_fail #couldnt find
@@ -141,4 +141,25 @@ search_fail:
 	jr $ra
 
 delete:
+	sw $ra -4($sp)
+	sw $a0 -8($sp)
+	sw $a1 -12($sp)
+	sw $a2 -16($sp)
+	addi $sp $sp -20
+	jal search
+	addi $sp $sp 20
+	lw $ra -4($sp)
+	sw $a0 -8($sp)
+	sw $a1 -12($sp)
+	sw $a2 -16($sp)
+	beqz $v0 delete_fail
+	li $t0 4
+	mul $t0 $t0 $v1
+	add $t0 $t0 $a1 #index of pointer
+	li $t1 -1
+	sw $t1 0($t0) #tombstone the pointer
+	move $v0 $v1
+	jr $ra
+delate_fail:
+	li $v0 -1
 	jr $ra
