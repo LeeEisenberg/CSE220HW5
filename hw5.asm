@@ -160,6 +160,6 @@ delete:
 	sw $t1 0($t0) #tombstone the pointer
 	move $v0 $v1
 	jr $ra
-delate_fail:
+delete_fail:
 	li $v0 -1
 	jr $ra
