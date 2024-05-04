@@ -110,8 +110,6 @@ insert_full:
 	jr $ra
 
 search:
-	li $v0 1
-	syscall
 	beqz $a2 search_fail #if table size 0 die
 	div $a0 $a2 #calc array index
 	mfhi $t0 #initial index
@@ -126,13 +124,6 @@ search_index:
 	beq $t3 $t4 next_index #if tomb skip
 	lw $t5 0($t3)
 	srl $t5 $t5 10 #get ID
-	move $t6 $a0
-	li $v0 1
-	move $a0 $t5
-	syscall
-	li $v0 11
-	li $a0 '\n'
-	syscall
 	move $a0 $t6
 	beq $t5 $a0 search_found #check if its the right ID
 next_index:
